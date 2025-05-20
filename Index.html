@@ -1,0 +1,122 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Diagnóstico Digital 1.2 – Preguntas Espejo con Ponderación</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; max-width: 1000px; }
+    .question { margin-bottom: 30px; padding: 10px; background: #f9f9f9; border-left: 4px solid #003366; }
+    h1, h2, h3 { color: #003366; }
+    label { display: block; margin: 4px 0; }
+    button { padding: 10px 20px; font-size: 1rem; margin-top: 20px; }
+    .result { margin-top: 40px; padding: 20px; background: #eef; border: 1px solid #ccc; }
+    canvas { margin-top: 30px; }
+    .tool-description { margin-top: 15px; padding: 10px; background: #fff; border: 1px dashed #ccc; }
+  </style>
+</head>
+<body>
+  <h1>Diagnóstico Digital 1.2 – ¿Qué plataforma necesitas realmente?</h1>
+  <p>Responde cómo trabajan hoy (fotografía actual) y cómo te gustaría trabajar (modelo deseado). El sistema recomendará la plataforma que mejor se ajusta a tu visión futura.</p>
+
+  <form id="formularioDiagnostico"></form>
+  <button onclick="calcularRecomendacion()">Calcular Recomendación</button>
+
+  <div id="resultado" class="result"></div>
+  <canvas id="graficaResultado" width="600" height="400"></canvas>
+
+<script>
+const herramientas = { Trello: 0, Asana: 0, Monday: 0, Ximpler: 0 };
+
+const preguntas = [
+  "¿Cómo se asignan tareas?",
+  "¿Cómo se da seguimiento?",
+  "¿Cómo se visualiza el flujo?",
+  "¿Quién cierra las tareas?",
+  "¿Qué tan visibles son los objetivos?",
+  "¿Cómo priorizan tareas?",
+  "¿Quién detecta estancamientos?",
+  "¿Cuántas tareas quedan sin cerrar?",
+  "¿Qué tan frecuente es el retrabajo?",
+  "¿Dónde están las instrucciones?",
+  "¿Cómo se mide el avance?",
+  "¿Quién valida que una tarea está completa?",
+  "¿Qué tan automatizado está el trabajo?",
+  "¿Dónde gestionan tareas repetitivas?",
+  "¿Qué tan claro es el impacto de cada tarea?",
+  "¿Cuántas tareas tiene cada persona abiertas?",
+  "¿Se trabaja por urgencia o por ritmo?",
+  "¿Cómo se asignan responsables?",
+  "¿Qué tanto se mide el resultado?",
+  "¿Qué tan transparente es la ejecución?"
+];
+
+const opciones = [
+  "WhatsApp, verbal o correo",
+  "Tablero sin contexto",
+  "Por plataforma, sin trazabilidad",
+  "Trazabilidad y contexto completo"
+];
+
+function renderPreguntas() {
+  const form = document.getElementById("formularioDiagnostico");
+  preguntas.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "question";
+    div.innerHTML = `<h3>${i + 1}. ${p}</h3><strong>A) ¿Cómo lo hacen hoy?</strong>`;
+    opciones.forEach((op, j) => {
+      div.innerHTML += `<label><input type="radio" name="q${i}a" value="${j}"> ${op}</label>`;
+    });
+    div.innerHTML += `<br><strong>B) ¿Cómo te gustaría hacerlo?</strong>`;
+    opciones.forEach((op, j) => {
+      div.innerHTML += `<label><input type="radio" name="q${i}b" value="${j}"> ${op}</label>`;
+    });
+    form.appendChild(div);
+  });
+}
+
+function calcularRecomendacion() {
+  const puntajes = { Trello: 0, Asana: 0, Monday: 0, Ximpler: 0 };
+
+  preguntas.forEach((_, i) => {
+    const val = document.querySelector(`input[name='q${i}b']:checked`);
+    if (val) {
+      const idx = parseInt(val.value);
+      if (idx === 0) puntajes.Trello += 1;
+      else if (idx === 1) puntajes.Asana += 1;
+      else if (idx === 2) { puntajes.Monday += 1; puntajes.Ximpler += 0.5; }
+      else if (idx === 3) puntajes.Ximpler += 1;
+    }
+  });
+
+  const maxTool = Object.entries(puntajes).reduce((a, b) => b[1] >= a[1] ? b : a)[0];
+
+  const resultado = document.getElementById("resultado");
+  resultado.innerHTML = `<h2>Herramienta Recomendada: ${maxTool}</h2>
+  <div class='tool-description'>
+    <p><strong>Ximpler.App:</strong> Plataforma de gestión inteligente para trazabilidad operativa, control por impacto y recuperación de nómina muerta.</p>
+    <p><strong>Monday:</strong> Visual y potente si ya tienes procesos bien definidos. Requiere estructura y disciplina.</p>
+    <p><strong>Asana:</strong> Intuitiva y funcional para tareas colaborativas o listas personales. Limitada en seguimiento real.</p>
+    <p><strong>Trello:</strong> Tablero tipo post-it, útil para flujos básicos o personales. No permite gobernanza ni medición.</p>
+  </div>`;
+
+  const ctx = document.getElementById("graficaResultado").getContext("2d");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: Object.keys(puntajes),
+      datasets: [{
+        label: "Compatibilidad según tu visión futura",
+        data: Object.values(puntajes),
+        backgroundColor: ['#bbb', '#f90', '#09f', '#2c7']
+      }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+  });
+}
+
+window.onload = renderPreguntas;
+</script>
+</body>
+</html>
